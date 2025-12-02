@@ -14,6 +14,9 @@ export class ProductListComponent implements OnInit {
   currentCategoryId: number = 0;
   constructor(private productService: ProductService, private route: ActivatedRoute) { }
   searchMode: boolean = false;
+  thePageNumber: number = 1;
+  thePageSize: number = 10;
+  theTotalElements: number = 0;
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(() => {
@@ -33,9 +36,10 @@ export class ProductListComponent implements OnInit {
   handleSearch() {
     const theKeyWord: string = this.route.snapshot.paramMap.get('keyword')!;
 
-    this.productService.searchProducts(theKeyWord).subscribe(
+    this.productService.getSearchProductListPaginate(this.thePageNumber - 1, this.thePageSize, theKeyWord).subscribe(
       data => {
-        this.products = data;
+        this.products = data._embedded.products;
+        this.theTotalElements = data.page.totalElements;
       }
     )
   }
@@ -47,12 +51,17 @@ export class ProductListComponent implements OnInit {
     } else {
       this.currentCategoryId = 1;
     }
-    this.productService.getProductList(this.currentCategoryId).subscribe(
+    this.productService.getProductListPaginate(this.thePageNumber - 1, this.thePageSize, this.currentCategoryId).subscribe(
       data => {
-        this.products = data;
+        this.products = data._embedded.products;
+        this.theTotalElements = data.page.totalElements;
       }
     )
   }
-
+  updatePageSize(arg0: string) {
+    this.thePageSize = +arg0;
+    this.thePageNumber = 1;
+    this.listProducts();
+  }
 
 }
